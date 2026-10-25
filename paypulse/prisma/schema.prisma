@@ -1,0 +1,168 @@
+// PayPulse Prisma Schema
+// PostgreSQL datasource and models for Freelancer, Client, Invoice, and Reminder
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Freelancer {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  name         String
+  businessName String?
+  currency     String     @default("USD")
+  avatarUrl    String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  clients      Client[]
+  invoices     Invoice[]
+  reminders    Reminder[]
+
+  @@map("freelancers")
+}
+
+model Client {
+  id           String     @id @default(cuid())
+  name         String
+  email        String
+  company      String?
+  phone        String?
+  address      String?
+  riskLevel    RiskLevel  @default(LOW)
+  paymentTerms Int        @default(30) // Net 30, Net 15, etc.
+  notes        String?
+  freelancerId String
+  freelancer   Freelancer @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  invoices     Invoice[]
+
+  @@index([freelancerId])
+  @@map("clients")
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique
+  title         String
+  amount        Float
+  amountMinor   Int           @default(0)
+  currency      String        @default("USD")
+  status        InvoiceStatus @default(DRAFT)
+  issueDate     DateTime      @default(now())
+  dueDate       DateTime
+  paidAt        DateTime?
+  notes         String?
+  lineItems     Json?         // JSON array of { description, quantity, unitPrice, amount }
+  
+  paypalInvoiceId  String?       @unique
+  paypalPaymentUrl String?
+
+  riskScore        Int?
+  riskReason       String?
+  riskLevel        RiskLevel?
+  recommendedAction String?
+  reminderTone     ReminderTone?
+  riskAnalyzedAt   DateTime?
+  riskDataLimited  Boolean       @default(false)
+
+  clientId      String
+  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  freelancerId  String
+  freelancer    Freelancer    @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  
+  reminders     Reminder[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([clientId])
+  @@index([freelancerId])
+  @@index([status])
+  @@map("invoices")
+}
+
+model WebhookEvent {
+  id         String   @id
+  eventType  String
+  receivedAt DateTime @default(now())
+
+  @@map("webhook_events")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PENDING
+  PAID
+  OVERDUE
+  HIGH_RISK
+  CANCELLED
+}
+
+model Reminder {
+  id           String          @id @default(cuid())
+  type         ReminderType    @default(GENTLE)
+  status       ReminderStatus  @default(DRAFT)
+  scheduledFor DateTime?
+  approvedAt   DateTime?
+  sentAt       DateTime?
+  subject      String
+  message      String
+  sendError    String?
+  channel      ReminderChannel @default(PAYPAL_REMINDER)
+  
+  invoiceId    String
+  invoice      Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  freelancerId String
+  freelancer   Freelancer      @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([invoiceId])
+  @@index([freelancerId])
+  @@index([status])
+  @@map("reminders")
+}
+
+enum ReminderType {
+  GENTLE
+  FRIENDLY
+  FIRM
+  FINAL_NOTICE
+  CUSTOM
+}
+
+enum ReminderChannel {
+  PAYPAL_REMINDER
+}
+
+enum ReminderStatus {
+  DRAFT
+  APPROVED
+  SCHEDULED
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum ReminderTone {
+  FRIENDLY
+  NEUTRAL
+  FIRM
+  URGENT
+}
+

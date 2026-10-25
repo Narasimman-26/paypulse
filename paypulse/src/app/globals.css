@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --border: #e2e8f0;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+}
+
+.dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --border: #334155;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Tabular numbers utility */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Clean minimal scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}

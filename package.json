@@ -1,0 +1,11 @@
+{
+  "name": "paypulse-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix paypulse run dev",
+    "build": "npm --prefix paypulse run build",
+    "start": "npm --prefix paypulse run start",
+    "lint": "npm --prefix paypulse run lint"
+  }
+}
